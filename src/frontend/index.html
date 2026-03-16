@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Construction Equipment Monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <header class="header">
+    <div class="header-left">
+      <span class="header-title">Construction Equipment Monitor</span>
+      <span class="header-subtitle">Real-time activity classification</span>
+    </div>
+    <div id="status-pill" class="status-pill status-offline">
+      <span class="status-dot"></span>
+      <span id="status-text">Pipeline Offline</span>
+    </div>
+  </header>
+
+  <!-- ── Main Content ───────────────────────────────────────────────────── -->
+  <main class="main-content">
+
+    <!-- Left: Live Video Feed -->
+    <section class="video-panel">
+      <div class="panel-header">
+        <span class="panel-title">Live Video Feed</span>
+      </div>
+      <div class="video-wrapper">
+        <img
+          id="video-feed"
+          src="http://localhost:8000/video/feed"
+          alt="Live video stream"
+          class="video-img"
+        />
+        <div id="video-placeholder" class="video-placeholder" style="display:none;">
+          <svg viewBox="0 0 24 24" class="placeholder-icon" aria-hidden="true">
+            <path d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+          </svg>
+          <p>Waiting for video stream…</p>
+        </div>
+      </div>
+      <div class="video-footer">
+        <span class="label">Timestamp</span>
+        <span id="stream-timestamp" class="stream-ts">—</span>
+      </div>
+    </section>
+
+    <!-- Right: Equipment Cards -->
+    <aside class="equipment-panel">
+      <div class="panel-header">
+        <span class="panel-title">Live Equipment Status</span>
+        <span id="equip-count-badge" class="count-badge">0</span>
+      </div>
+      <div id="equipment-cards" class="equipment-cards-list">
+        <p id="no-equipment-msg" class="no-data-msg">Waiting for equipment data…</p>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- ── Bottom Panel ───────────────────────────────────────────────────── -->
+  <section class="bottom-panel">
+
+    <!-- Upload -->
+    <div class="bottom-card">
+      <h2 class="section-title">Upload Video</h2>
+      <div
+        id="drop-zone"
+        class="drop-zone"
+        role="button"
+        tabindex="0"
+        aria-label="Upload video file"
+      >
+        <svg viewBox="0 0 24 24" class="upload-icon" aria-hidden="true">
+          <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 12l-4-4m0 0l-4 4m4-4v12"/>
+        </svg>
+        <p class="drop-primary">Drag video here or click to browse</p>
+        <p class="drop-secondary">Supports .mp4 · .avi · .mov</p>
+        <p id="drop-filename" class="drop-filename" style="display:none;"></p>
+      </div>
+      <input
+        id="file-input"
+        type="file"
+        accept=".mp4,.avi,.mov,video/mp4,video/avi,video/quicktime"
+        class="hidden-input"
+        aria-hidden="true"
+      />
+      <button id="upload-btn" class="btn-primary" disabled>
+        <span id="upload-btn-text">Start Processing</span>
+        <span id="upload-spinner" class="spinner" style="display:none;" aria-hidden="true"></span>
+      </button>
+      <p id="upload-msg" class="upload-msg" style="display:none;"></p>
+    </div>
+
+    <!-- Stats Dashboard -->
+    <div class="bottom-card">
+      <h2 class="section-title">Session Summary</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">Total Active</span>
+          <span id="stat-active" class="stat-value">0.0s</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Total Idle</span>
+          <span id="stat-idle" class="stat-value">0.0s</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Avg Utilization</span>
+          <span id="stat-util" class="stat-value">0.0%</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Equipment Detected</span>
+          <span id="stat-count" class="stat-value">0</span>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>

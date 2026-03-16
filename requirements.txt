@@ -1,0 +1,17 @@
+fastapi==0.128.0
+uvicorn==0.40.0
+starlette==0.50.0
+pydantic==2.12.5
+python-multipart==0.0.22
+asyncpg==0.31.0
+psycopg2-binary==2.9.11
+kafka-python==2.3.0
+torch==2.8.0+cu128
+torchvision==0.23.0+cu128
+ultralytics==8.4.22
+opencv-python==4.11.0.86
+Pillow==12.1.0
+numpy==1.26.4
+pandas==2.3.3
+gradio==6.9.0
+cvat-sdk==2.59.1

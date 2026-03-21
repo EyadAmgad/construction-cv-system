@@ -101,4 +101,4 @@ A working demonstration video showing the system's live UI drawing bounding boxe
 
 <video controls src="demo.mp4" title="System Demo" width="100%"></video>
 
-*(If the video does not play in your markdown viewer, you can [click here to view demo.mp4](demo.mp4))*
+*(If the video does not play in your markdown viewer, you can [click here to view demo.mp4](Demo.mp4))*

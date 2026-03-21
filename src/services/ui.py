@@ -66,7 +66,7 @@ def run_pipeline(video_file, progress=gr.Progress()):
         return None, None, "❌ Pipeline failed:\n" + "\n".join(log_lines[-20:])
 
     # Parse summary from log
-    summary_lines = [l for l in log_lines if "Equipment Summary" in l or l.strip().startswith("EQ-")]
+    summary_lines = [l for l in log_lines if "Equipment Summary" in l or l.strip().startswith("EQ-") or l.strip().startswith("EXCAVATOR")]
     summary = "\n".join(summary_lines) if summary_lines else "Done."
 
     # Load CSV for table

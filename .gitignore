@@ -28,3 +28,7 @@ output/
 *.pth
 __pycache__/
 *.pyc
+*.csv
+*.mp4
+!Demo.mp4
+*.avi

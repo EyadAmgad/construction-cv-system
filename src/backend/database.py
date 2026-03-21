@@ -4,15 +4,16 @@ Uses asyncpg for async PostgreSQL access.
 """
 
 import os
+from typing import Optional
 import asyncpg
 
 DB_HOST     = os.getenv("DB_HOST",     "localhost")
-DB_PORT     = int(os.getenv("DB_PORT", 5432))
+DB_PORT     = int(os.getenv("DB_PORT", 5433))
 DB_NAME     = os.getenv("DB_NAME",     "construction_cv")
 DB_USER     = os.getenv("DB_USER",     "cvuser")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "cvpass")
 
-_pool: asyncpg.Pool | None = None
+_pool: Optional[asyncpg.Pool] = None
 
 
 async def get_pool() -> asyncpg.Pool:

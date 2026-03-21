@@ -63,6 +63,8 @@ def _read_video_frames(video_path: str, job_id: str) -> None:
         process_video(
             video_path=video_path,
             frame_callback=_update_frame,
+            use_kafka=True,
+            use_db=True,
         )
     except Exception as exc:
         print(f"[cv_service] error: {exc}")
@@ -101,7 +103,9 @@ app.add_middleware(
 
 
 # ── Health ─────────────────────────────────────────────────────────────────────
-@app.get("/", tags=["health"])
+from fastapi.staticfiles import StaticFiles
+
+@app.get("/api/health", tags=["health"])
 async def root():
     return {"status": "ok", "service": "construction-cv-api"}
 
@@ -281,6 +285,19 @@ async def upload_video(
     file: UploadFile = File(...),
 ):
     """Upload a video file. Frames are streamed live via GET /video/feed."""
+    # Reset live data on new upload
+    try:
+        pool = await get_pool()
+        await pool.execute("TRUNCATE equipment_events CASCADE")
+        await pool.execute("TRUNCATE detections CASCADE")
+        await pool.execute("TRUNCATE analysis_runs CASCADE")
+    except Exception as e:
+        print(f"Warning: Could not wipe prior database run data: {e}")
+
+    global _current_frame_jpeg
+    with _frame_lock:
+        _current_frame_jpeg = b""
+
     upload_dir = _OUTPUT_DIR / "uploads"
     upload_dir.mkdir(parents=True, exist_ok=True)
     job_id = str(uuid.uuid4())[:8]
@@ -367,7 +384,7 @@ async def _sse_generator() -> AsyncGenerator[str, None]:
         rows = await pool.fetch(
             """SELECT DISTINCT ON (equipment_id)
                    equipment_id, equipment_class, current_state, current_activity,
-                   utilization_percent, frame_id
+                   utilization_percent, total_active_seconds, total_idle_seconds, frame_id
                FROM equipment_events
                ORDER BY equipment_id, frame_id DESC"""
         )
@@ -383,3 +400,7 @@ async def sse_stream():
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+# Mount the frontend last so it doesn't intercept API routes (like POST /video/upload)
+app.mount("/", StaticFiles(directory="src/frontend", html=True), name="frontend")
+

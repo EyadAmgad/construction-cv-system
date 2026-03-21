@@ -24,19 +24,19 @@ import cv2
 
 ROOT = Path(__file__).parent.parent.parent
 
-# Map each expanded CSV → its source video
+# Map each expanded CSV -> its source video
 ENTRIES = [
     {
-        "csv": ROOT / "301-250219-011424-011654-night-A_labels_expanded.csv",
-        "video": ROOT / "dataset/excavator-video/videos/301/301-250219-011424-011654-night-A.mp4",
+        "csv": ROOT / "train_part_1_labels_expanded.csv",   
+        "video": ROOT / "output/train_part_1.mp4",
     },
     {
-        "csv": ROOT / "302-250420-004123-004718-night-B_labels_expanded.csv",
-        "video": ROOT / "dataset/excavator-video/videos/302/302-250420-004123-004718-night-B.mp4",
+        "csv": ROOT / "train_part_2_labels_expanded.csv",   
+        "video": ROOT / "output/train_part_2.mp4",
     },
     {
-        "csv": ROOT / "302-250420-110359-110900-day-B_labels_expanded.csv",
-        "video": ROOT / "dataset/excavator-video/videos/302/302-250420-110359-110900-day-B.mp4",
+        "csv": ROOT / "train_part_4_labels_expanded.csv",     
+        "video": ROOT / "output/train_part_4.mp4",
     },
 ]
 

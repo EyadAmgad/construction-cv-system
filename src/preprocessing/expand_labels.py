@@ -19,7 +19,9 @@ import csv
 from pathlib import Path
 
 
-def expand(input_csv: str, total_frames: int | None = None) -> Path:
+from typing import Optional
+
+def expand(input_csv: str, total_frames: Optional[int] = None) -> Path:
     rows: list[tuple[int, str]] = []
     with open(input_csv, newline="") as f:
         reader = csv.DictReader(f)

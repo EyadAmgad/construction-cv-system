@@ -25,7 +25,7 @@ const _prevStats = { active: 0, idle: 0, util: 0, count: 0 };
    ────────────────────────────────────────────────────────────────────────── */
 async function checkHealth() {
   try {
-    const r = await fetch(`${API}/health`);
+    const r = await fetch(`/api/health`);
     const d = await r.json();
     setStatus(d.status === 'ok' ? 'online' : 'offline');
   } catch {
@@ -207,7 +207,14 @@ function updateEquipmentCards(equipment) {
   const noMsg = document.getElementById('no-equipment-msg');
   const badge = document.getElementById('equip-count-badge');
 
-  if (!Array.isArray(equipment) || equipment.length === 0) return;
+  if (!Array.isArray(equipment) || equipment.length === 0) {
+    if (noMsg) noMsg.style.display = 'block';
+    badge.textContent = 0;
+    Array.from(container.children).forEach(el => {
+      if (el.id !== 'no-equipment-msg') el.remove();
+    });
+    return;
+  }
 
   if (noMsg) noMsg.style.display = 'none';
   badge.textContent = equipment.length;
@@ -257,7 +264,13 @@ function animateNumber(el, target, suffix = '', decimals = 1) {
 
 /** Recalculate and animate the 4 stat cards from the latest SSE snapshot. */
 function updateDashboard(equipment) {
-  if (!Array.isArray(equipment) || equipment.length === 0) return;
+  if (!Array.isArray(equipment) || equipment.length === 0) {
+    animateNumber(document.getElementById('stat-active'), 0, 's', 1);
+    animateNumber(document.getElementById('stat-idle'), 0, 's', 1);
+    animateNumber(document.getElementById('stat-util'), 0, '%', 1);
+    animateNumber(document.getElementById('stat-count'), 0, '', 0);
+    return;
+  }
 
   const totalActive = equipment.reduce(
     (s, e) => s + parseFloat(e.total_active_seconds ?? e.active_seconds ?? 0), 0
@@ -399,6 +412,11 @@ function initUpload() {
         selectedFile = null;
         fileLabel.style.display = 'none';
         fileInput.value = '';
+        
+        // Instantly force UI clear since database was truncated
+        updateDashboard([]);
+        updateEquipmentCards([]);
+        document.getElementById('video-placeholder').style.display = 'flex';
       } else {
         const err = await r.text();
         showMsg(`Upload failed: ${err}`, 'error');

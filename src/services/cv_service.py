@@ -16,10 +16,12 @@ Usage:
 import argparse
 import csv
 import json
+import os
 import sys
 from collections import deque
 from datetime import timedelta
 from pathlib import Path
+from typing import Optional
 
 import cv2
 import numpy as np
@@ -47,7 +49,7 @@ OUTPUT_DIR = ROOT / "output"
 CHECKPOINT = OUTPUT_DIR / "best_model.pth"
 
 # ── Kafka ──────────────────────────────────────────────────────────────────────
-KAFKA_BOOTSTRAP = "localhost:9094"
+KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP", "localhost:9094")
 KAFKA_TOPIC     = "equipment-detections"
 
 # ── Constants ──────────────────────────────────────────────────────────────────
@@ -94,7 +96,7 @@ def load_models(device: torch.device):
     return yolo, cnn_lstm, mog2
 
 
-def make_kafka_producer() -> "KafkaProducer | None":
+def make_kafka_producer() -> Optional["KafkaProducer"]:
     if not KAFKA_AVAILABLE:
         return None
     try:
@@ -145,7 +147,7 @@ def build_payload(frame_id: int, fps: float, equipment_id: str,
     }
 
 # ── Crop helper ────────────────────────────────────────────────────────────────
-def safe_crop(frame: np.ndarray, xyxy) -> np.ndarray | None:
+def safe_crop(frame: np.ndarray, xyxy) -> Optional[np.ndarray]:
     """Crop bbox from frame, clamped to frame bounds. Returns None if too small."""
     h, w = frame.shape[:2]
     x1 = int(max(0, float(xyxy[0])))
@@ -227,13 +229,15 @@ LABEL_COLORS = {
     "loading": (0, 255, 0),      # green
     "dumping": (255, 0, 0),      # blue
     "waiting": (0, 0, 255),      # red
+    "moving":  (0, 255, 0),      # green
+    "stopped": (128, 128, 128),  # gray
 }
 DEFAULT_COLOR = (200, 200, 200)
 
 
 def draw_box(frame: np.ndarray, xyxy, equipment_id: str,
-             label: str | None, confidence: float | None,
-             utilization: float | None) -> None:
+             label: Optional[str], confidence: Optional[float],
+             utilization: Optional[float]) -> None:
     """Draw bounding box + label overlay on frame in-place."""
     x1 = int(max(0, float(xyxy[0])))
     y1 = int(max(0, float(xyxy[1])))
@@ -271,8 +275,8 @@ def draw_box(frame: np.ndarray, xyxy, equipment_id: str,
 
 
 
-def process_video(video_path: str, output_csv: str | None = None,
-                  output_video: str | None = None, use_db: bool = False,
+def process_video(video_path: str, output_csv: Optional[str] = None,
+                  output_video: Optional[str] = None, use_db: bool = False,
                   use_kafka: bool = False, frame_callback=None):
     OUTPUT_DIR.mkdir(exist_ok=True)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -333,7 +337,7 @@ def process_video(video_path: str, output_csv: str | None = None,
 
         # ── Build unified detection list ────────────────────────────────────────
         # Each entry: (equipment_id, xyxy_for_visual_box, crop_for_classifier)
-        detections_to_process: list[tuple[str, tuple, np.ndarray | None]] = []
+        detections_to_process: list[tuple[str, tuple, Optional[np.ndarray]]] = []
 
         h_frame, w_frame = frame.shape[:2]
 
@@ -368,14 +372,27 @@ def process_video(video_path: str, output_csv: str | None = None,
                 frame_buffer[equipment_id] = deque(maxlen=SEQ_LEN)
                 time_tracker[equipment_id] = {"active": 0.0, "idle": 0.0}
 
-            frame_buffer[equipment_id].append(crop)
+            frame_buffer[equipment_id].append((crop, xyxy))
 
             # ── Classify when buffer is full ───────────────────────────────────
             if len(frame_buffer[equipment_id]) == SEQ_LEN:
-                label, confidence = classify_sequence(
-                    list(frame_buffer[equipment_id]), cnn_lstm, device
-                )
-                state = "ACTIVE" if label in ACTIVE_LABELS else "INACTIVE"
+                if equipment_id == "EXCAVATOR":
+                    crops_only = [item[0] for item in frame_buffer[equipment_id]]
+                    label, confidence = classify_sequence(
+                        crops_only, cnn_lstm, device
+                    )
+                    state = "ACTIVE" if label in ACTIVE_LABELS else "INACTIVE"
+                else:
+                    boxes = [item[1] for item in frame_buffer[equipment_id]]
+                    first_box, last_box = boxes[0], boxes[-1]
+                    cx1, cy1 = (first_box[0] + first_box[2]) / 2, (first_box[1] + first_box[3]) / 2
+                    cx2, cy2 = (last_box[0] + last_box[2]) / 2, (last_box[1] + last_box[3]) / 2
+                    dist = ((cx2 - cx1)**2 + (cy2 - cy1)**2)**0.5
+                    
+                    if dist > 5.0:  # 5 pixels movement threshold
+                        label, state, confidence = "moving", "ACTIVE", 1.0
+                    else:
+                        label, state, confidence = "stopped", "INACTIVE", 1.0
 
                 if state == "ACTIVE":
                     time_tracker[equipment_id]["active"] += window_seconds

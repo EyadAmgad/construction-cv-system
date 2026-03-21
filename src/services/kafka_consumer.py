@@ -30,7 +30,7 @@ KAFKA_GROUP_ID  = "construction-cv-consumer"
 def get_connection():
     return psycopg2.connect(
         host=os.getenv("DB_HOST", "localhost"),
-        port=int(os.getenv("DB_PORT", 5432)),
+        port=int(os.getenv("DB_PORT", 5433)),
         dbname=os.getenv("DB_NAME", "construction_cv"),
         user=os.getenv("DB_USER", "cvuser"),
         password=os.getenv("DB_PASSWORD", "cvpass"),
@@ -68,7 +68,7 @@ def run(bootstrap: str, topic: str) -> None:
         topic,
         bootstrap_servers=bootstrap,
         group_id=KAFKA_GROUP_ID,
-        auto_offset_reset="earliest",
+        auto_offset_reset="latest",
         enable_auto_commit=True,
         value_deserializer=lambda b: json.loads(b.decode("utf-8")),
     )

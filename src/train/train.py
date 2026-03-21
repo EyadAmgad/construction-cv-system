@@ -33,9 +33,9 @@ CSV_PATH = ROOT / "dataset" / "dataset.csv"
 CHECKPOINT_DIR = ROOT / "output"
 
 ALL_VIDEOS = [
-    "301-250219-011424-011654-night-A",
-    "302-250420-004123-004718-night-B",
-    "302-250420-110359-110900-day-B",
+    "train_part_1",
+    "train_part_2",
+    "train_part_4",
 ]
 
 
@@ -53,10 +53,10 @@ def make_weighted_sampler(dataset):
 def get_dataloaders(args):
     if args.split == "video":
         train_videos = [
-            "301-250219-011424-011654-night-A",
-            "302-250420-004123-004718-night-B",
+            "train_part_1",
+            "train_part_2",
         ]
-        val_videos = ["302-250420-110359-110900-day-B"]
+        val_videos = ["train_part_4"]
         train_ds = ExcavatorSequenceDataset(
             CSV_PATH, ROOT, train_videos,
             seq_len=args.seq_len, stride=args.stride, transform=TRAIN_TRANSFORM,

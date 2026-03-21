@@ -1,0 +1,28 @@
+# Data and Videos
+dataset/
+output/
+*.mp4
+*.avi
+*.mov
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+
+# Git
+.git/
+.github/
+
+# IDEs
+.vscode/
+
+# Zips
+*.zip
+colab_training.ipynb
+*.csv

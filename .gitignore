@@ -10,6 +10,7 @@
 .snapshots/
 #Testing Output folder
 .output/
+!.output/best_model.pth
 #Extension App-file
 *.app
 #Rapid Application Development File
@@ -32,3 +33,4 @@ __pycache__/
 *.mp4
 !Demo.mp4
 *.avi
+technical_writeup.md
